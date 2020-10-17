@@ -1,0 +1,4 @@
+stack segment near: 0x7ffcf065f04c
+heap segment near: 0x55d17ec592a0
+BSS segment near: 0x55d17daa8040
+initialized data segment near: 0x55d17daa8010
