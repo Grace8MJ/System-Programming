@@ -28,3 +28,16 @@ _size_ allows you to check the sizes of Text, Data, BSS segment.
 ~~~
 size ./mem-layout
 ~~~
+
+## Check Processes
+~~~
+ps -ef
+pstree
+~~~
+
+## Use _getpid()_
+Used _getpid()_ in _pid.c_ file
+~~~
+gcc pid.c -o pid
+./pid
+~~~
