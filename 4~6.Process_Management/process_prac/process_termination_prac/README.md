@@ -14,4 +14,4 @@
 - Abort
 - Receipt of a signal
 
-![Process Termination](http://poincare.matf.bg.ac.rs/~ivana/courses/ps/sistemi_knjige/pomocno/apue/APUE/0201433079/images/0201433079/graphics/07fig02_alt.gif;423615 "Process Termination")
+![Process Termination](https://lh3.googleusercontent.com/proxy/SpLJFXsnl5SNS4PqF0EdLeUjBi-hSwjOLtMm5hKWz0bkXUjiZ3ehUztnT8k7e8VdZreBOEtSEbIqeIEkBOllckg2jYlIKxaZOiFAnaUIWKMOISTMfxhYFopp2Gxl_3v0qd7K_Qrp1b5YGyI87DnI7aU9KkRIiGRyqN-08L8j5RPHFZ4QfhKOH3gT9wGltNPQA01s9UVO13DWr24S0h3Bcy0U "Process Termination")
