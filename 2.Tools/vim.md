@@ -7,7 +7,7 @@ Highly configurable text editor
 
 ## vim Configuration
 location: ~/.vimrc
-'''
+~~~
 set nu
 set ai
 set si
@@ -28,5 +28,5 @@ syntax on
 filetype indent on
 set bs=indent,eol,start
 set title
-'''
+~~~
 c.f. <https://secure-key.tistory.com/54>
