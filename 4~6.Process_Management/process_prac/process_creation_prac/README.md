@@ -35,7 +35,7 @@ When a process tries to write to a shared memory address,
 			- "not in memory" usually means the data is on disk (not in RAM)
 	 - Linux makes a copy of the page (_read only_) and updates the page table
 	 - the process continues
-![Copy-on-Write](./1.png "Copy-on-Write")
+![Copy-on-Write](./1.PNG "Copy-on-Write")
 
 
 ### _exec()_ family function
