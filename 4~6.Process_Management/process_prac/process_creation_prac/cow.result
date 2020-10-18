@@ -1,0 +1,4 @@
+hi! it's a child (22387)
+pid: 22387, global: 101, var: 11
+hi! it's a parent (22386)
+pid: 22386, global: 100, var: 10

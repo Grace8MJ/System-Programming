@@ -1,0 +1,6 @@
+before fork(): 22112
+hi! it's a parent (22112)
+after fork(): who called this? 22112
+before fork(): 22112
+hi! it's a child (1506 -> 22113)
+after fork(): who called this? 22113
