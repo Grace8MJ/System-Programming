@@ -30,11 +30,11 @@ When forked, parent and child process are sharing physical RAM, not memory. Linu
 gcc cow.c -o cow
 ~~~
 When a process tries to write to a shared memory address,
-	 - there's a __page fault__
-			- __page fault__ happens when you try to access a page that's marked "not in memory"
-			- "not in memory" usually means the data is on disk (not in RAM)
-	 - Linux makes a copy of the page (_read only_) and updates the page table
-	 - the process continues
+1. there's a __page fault__
+	- __page fault__ happens when you try to access a page that's marked "not in memory"
+	- "not in memory" usually means the data is on disk (not in RAM)
+1. Linux makes a copy of the page (_read only_) and updates the page table
+1. the process continues
 ![Copy-on-Write](./1.PNG "Copy-on-Write")
 
 
