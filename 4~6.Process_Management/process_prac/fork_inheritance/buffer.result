@@ -1,0 +1,7 @@
+write to stdout
+printf by 16626: before fork
+printf by 16626: hi from parent!
+printf by 16626: bye 
+printf by 16626: before fork
+printf by 16627: hi from child!
+printf by 16627: bye 
