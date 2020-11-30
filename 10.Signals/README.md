@@ -107,3 +107,18 @@ __7. Real-time signals__
 
 
 ## Core Dump
+- = Core File
+- an image of the memory of a process, taken at the _crash-time_ of the corresponding process
+- has useful information to debug the crash
+  - Memory dump at the time of crash
+  - Termination status (usually abnormal)
+  - Copies of processor registries
+- Default disposition of many signals inclues core dumps ∵ many default setups set to 0 the maximum size limit on core dumps
+  - _ulimit -c_: check out the current setting
+  - _ulimit -c unlimited_: enabling core files
+~~~
+gcc -Wall -g -o sleep-dump sleep-dump.c
+./sleep-dump
+ctrl+c    // sending SIGINT = terminate with no core
+ctrl+\    // sending SIGQUIT = terminate with core
+~~~
