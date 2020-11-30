@@ -26,7 +26,7 @@
 - Signal names: starting with __SIG__
 - _signal.h_: matches signal names to signal numbers  
 
-![kill -l](./signal.png)
+![kill -l](./signals.png)
 
 ### Signal disposition
 - Signal은 비동기적인 이벤트 → 언제 일어날지 예상X → 시그널이 발생했을 때 수행해야할 부분 마련해서 커널에 알려야 함
