@@ -121,4 +121,159 @@ gcc -Wall -g -o sleep-dump sleep-dump.c
 ./sleep-dump
 ctrl+c    // sending SIGINT = terminate with no core
 ctrl+\    // sending SIGQUIT = terminate with core
+gdb sleep-dump core       // it shows 'Program terminated with signal SIGQUIT, Quit.'
 ~~~
+![Core File](./corefile.png)
+
+### Old Style Signaling: _signal()_
+~~~
+typedef void (*sighandler_t)(int);
+sighandler_t signal(int signo, sighandler_t handler);
+  Returns: previous signal disposition if OK, SIG_ERR on error
+~~~
+__signo__: the name (or number) of signal whose disposition we want to change
+__handler__: one of the followings:
+  - ___SIG_IGN___ to request ignoring of __signo__
+  - ___SIG_DFL___ to reset the signal disposition of __signo__ to the default
+  - point to the handler that is invoked to complete a signal delivery passing the number of the signal being delivered
+  
+~~~
+gcc signal1.c -o signal1
+kill -10 [process ID]   // 10) SIGUSR1
+kill -12 [process ID]   // 12) SIGUSR2
+~~~
+
+
+## Signal Inheritance
+### fork()
+- a child inherits parent's signal disposition
+  - ignored and default signals remain the same in the child
+  - caught signals continue to be caught by the same handlers
+### exec()
+- ignored and default signals can remain the same, but caught signals cannot because function pointers would be meaningless in the address space of a new (different) program
+- __exec()__ resets to the default actions for caught signals
+
+~~~
+#include <signal.h>
+int kill (pid_t pid, int signo);
+int raise (int signo);
+  Returns: 0 if OK, -1 on error
+~~~
+Signals can be sent to arbitrary processes using _kill()_ or to the current process using _raise()_
+For _kill()_, the meaning of __pid__ depends on:
+- __pid > 0__: signal sent to process with _pid_
+- __pid == 0__: signal sent to all processes in the same process group of the sender
+- __pid < 0__: signal sent to all processes of process group _abs(pid)_
+- __pid == -1__: signal sent to all processes
+
+Appropriate permissions are required to send a signal
+- Superuser (process) can kill arbitrary processes
+- Normal user (process) can kill processes whose real or saved set-user-ID are equal to the sender process real or effective uid
+
+## Signal Pause: _pause()_
+It blocks a process until a signal is caught (i.e., activating a signal handler)
+~~~
+#include <unistd.h>
+int pause(void);
+  Returns: -1 with errno set to EINTR
+~~~
+
+## Signal Alarm: _alarm()_
+It sets a timer for a aprocess that will expire seconds in the future; after the timer expiration, __SIGALRM__ is sent to the calling process
+~~~
+#include <unistd.h>
+unsigned int alarm(unsigned int seconds);
+  Returns: 0 or number of seconds until previously set alarm
+~~~
+- Default action is a process termination
+- One timer per process is set (i.e., no more than one timer)
+- __alarm(0)__ cancels the timer
+- number of seconds left before the previous timer expiration is returned at each invocation
+~~~
+gcc clock.c -o clock
+./clock
+~~~
+
+## Signal Sleep: _sleep()_
+It is a timeout-powered version of _pause()_
+~~~
+#include <unistd.h>
+unsigned int sleep(unsigned int seconds);
+  Returns: 0 or number of unslept seconds
+~~~
+Signal is caught and its signal handler returns  
+Return value tells us the remaining time, in seconds, until termination condition
+
+### Reliability Issues with _signal()_
+1. Reset to default
+  - Action dispositions used to be reset to the default action at each delivery; code like the following was (and still is) common place
+~~~
+void my_handler(int signo){
+...
+  signal(SIGINT, my_handler);   // re-establish handler
+...                             // process signal
+}
+
+int main(void){
+...
+  signal(SIGINT, my_handler);   // establish handler
+}
+~~~
+  - Problem: Race condition between the start of handler execution and the re-establishmnet of the signal handler
+  - Signal delivered in between will trigger the default action (i.e., potentially terminating the process)
+  
+2. Snoozing signals
+  - Alternate program phases where we can't be interrupted (i.e., critical regions), with phases where we can, without losing relevant signals delivered during the critical regions
+~~~
+int sig_int_flag = 0;   // global flag
+
+void my_handler(int signo){
+...
+  signal(SIGINT, my_handler);   // establish handler
+  sig_int_flag = 1;             // caught signal and set flag
+}
+
+int main(void){
+...
+  signal(SIGINT, my_handler);
+...
+  while(sig_int_flag == 0)
+    pause();
+...
+}
+~~~
+  - When the signal handler returns, the program will be awakened (thanks to _pause()_) and the flag will tell us if a specific handler has been executed
+  - If the signal is not relevant, wait for the signal
+  - Problem: Race condition between the test of _sig_int_flag == 0_ and _pause()_
+  - If a signal gets delivered in that window (and if it's delivered only once), the pgoram will block forever because nobody will (re)check the flag before blocking
+  - Mitigation: use _sleep()_ instead of _pause()_: but it still induces timeout and/or polling problems
+  
+3. __EINTR__ uncertainty 
+  - System calls invocations can be classified in two classes: slow and fast invocations
+  - Slow invocations might block indefinitely
+    - _read()_, _write()_, and _ioctl()_ when called on slow devices
+    - _wait()_, _waitpid()_
+    - socket interfaces
+    - file locking interfaces
+    - IPC synchronization primitives such as message queues, semaphores, mutexes, etc.
+  - If a signal gets caught during a slow system call invocation, the system call might return an error and set EINTR to errno
+  - Merit of interrupt-able system calls is that they allow to have a way out of situations that could block forever
+  - Demerit of interrupt-able system calls is that the code needs to deal with the _EINTR_ error condition explicitly and restart the interrupted system call invocation, like the following code
+~~~
+while ((n = read(fd, buf, BUFFSIZE)) != 0){
+  if (n == -1){
+    if (errno == EINTR)
+      continue;
+    else
+      // handle other error cases
+  }
+  // handle success cases
+}
+~~~
+
+4. Signal queuing
+  - Old style signaling, which is used by early Linix with _signal()_, has no way to handle the same signal generated twice, before the target process has a chance to deliver it.
+
+5. Causality
+  - What would be the delivery order of signals to a process if different signals are gnerated for the same target process in the order s1, s2, ... sn?
+  - We cannot get any guarantee about the preservation of any order between the generation and delivery
