@@ -1,32 +1,32 @@
-/** 17011637-server.c **/
+#include <errno.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-#include "fifo.h"
-#include <ctype.h>
+#define FIFO_NAME "17011637_s"
 
-int main(){
-	int sv_fifo_fd, cl_fifo_fd;
-	int data_to_pass_int fifo_data;
-	int read_res;
-	char cl_fifo[256];
+int main(void){
+	char buf[100];
+	int num, fd;
 
-	mkfifo(SV_FIFO_NAME,0777);
-	sv_fifo_fd = open(SV_FIFO_NAME, O_RDONLY);
-	if (sv_fifo_fd == -1)
-		exit(EXIT_FAILURE);
+	// making a FD, which is the same one the writer uses, for FIFO
+	if (mknod(FIFO_NAME, S_IFIFO | 0666, 0 ) == -1)
+		perror("mknod error");
 
-	while(1){
-		read_res = read(sv_fifo,fd, &fifo_data, sizeof(fifo_data));
-		if (read_res > 0){
-			sprintf(cl_fifo, O_WRONLY);
+	// we are waiting for the writer
+	// we open the FD, when the writer opens the FD
+	fd = open(FIFO_NAME, O_RDONLY);
 
-			if (cl_fifo_fd != -1){
-				sprintf("%d+1 = %d",fifo_data, fifo_data+1);
-				write(cl_fifo_fd, &fifo_data, sizeof(fifo_data));
-				close(cl_fifo_fd);
-			}
+	// Receive the data sent from the writer via FIFO
+	do{
+		if ((read(fd, num, strlen(num))) == -1)
+			perror("read error");
+		else{
+			printf("%d\n",num);
 		}
-	}
-	close(sv_fifo_fd);
-	unlink(SV_FIFO_NAME);
-	exit(EXIT_SUCCESS);
+	}while (num > 0);
+
+	return 0;
 }
